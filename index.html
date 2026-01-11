@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Kelime Bulmaca</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+  margin:0; padding:0;
+  font-family: Arial, sans-serif;
+  background:#2c3e50; color:white;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:flex-start;
+  min-height:100vh; text-align:center;
+}
+h1 { font-size:64px; margin:20px 0; }
+#score, #record { font-size:36px; margin:5px; }
+#letters { display:flex; flex-wrap:wrap; justify-content:center; margin:20px auto; max-width:90vw; }
+.letter { width:80px; height:80px; background:#3498db; margin:8px; display:flex; justify-content:center; align-items:center; font-size:48px; border-radius:10px; user-select:none; touch-action: manipulation; cursor:pointer; }
+.letter.used { background:#95a5a6; cursor:not-allowed; }
+#selected { margin:20px 0; font-size:56px; min-height:70px; }
+button { font-size:32px; padding:15px 30px; margin:10px; border-radius:12px; cursor:pointer; }
+#controlButtons { display:flex; justify-content:center; }
+</style>
+</head>
+<body>
+
+<h1>Kelime Bulmaca</h1>
+<div id="score">Skor: 0</div>
+<div id="record">Rekor: 0</div>
+<div id="letters"></div>
+<div id="selected"></div>
+<div id="controlButtons">
+  <button id="deleteBtn">Sil</button>
+  <button id="checkBtn">Kontrol Et</button>
+</div>
+
+<script>
+// Kelime dizisi düzgün JS formatında
+const words = [
+"ELMA","ARABA","KEDI","BILGISAYAR","FUTBOL","MASA","SANDALYE","KITAP",
+"KALEM","BILIM","OYUN","MUTFAK","BANYO","KAPI","PENCERE","TELEFON",
+"SALON","ODA","BILGISAYARCI","YAZILIM","MOTOR","SEHPA","KUTU","BIRAK",
+"SURAT","YOL","TREN","UCAK","GEMI","DENIZ","DAĞ","NEHIR","CICEK",
+"AGAC","YILDIZ","AY","GUN","HAFTA","AYAK","EL","KULAK","GOZ","BURUN",
+"DOGA","FIRTINA","KUS","KOPEK","FIRIN","EKMEK","SU","ICECEK",
+"OTOBUS","BISIKLET","YUZME","KOSU","SARKI","MUSIC","RESIM","SINIF","OKUL",
+"OGRENCI","OGRETMEN","TARH","MATEMATIK","FIZIK","KIMYA","PROGRAM","KOD",
+"SEHIR","KASABA","KIMLIK","BILET","HASTANE","ECZANE","MARKET","BAYRAM",
+"TATIL","YAZ","KIŞ","SONBAHAR","ILKBAHAR","SEPET","CANTA","CEKET","ELBISE",
+"AYAKKABI","SANDALET","KALP","DUVAR","FOTO","OYUNCAK","TAHTA","KLAVYE","MONITOR",
+"MOUSE","FAN","KULE","BINA","OKYANUS","GORUS","BULUT","YEMEK","KAHVALTI",
+"OGLE","AKSAM","TABAĞ","ÇATAL","KAŞIK","BIÇAK","ÇAY","KAHVE","SUT","BAL","PEYNIR",
+"DOMATES","SALATALIK","PATATES","SOĞAN","SARIMSAK","HAVUC","ARMUT","MUZ","KARPUZ",
+"ÇILEK","ÇAYIR","ORMAN","TEPE","VADI","GÖL","KOY","KUM","TAŞ","KAYA","BILGILIK",
+"TARIM","ÇİFTLIK","INŞAAT","KÖPRÜ","SPOR","BASKETBOL","VOLEYBOL","TENIS","GOLF",
+"ATLETIZM","BIOLOJI","TICARET","PAZAR","MAGAZA","BAYI","KASAP","UNIVERSITE",
+"KÜTÜPHANE","GARDROP","LAMBADER","MÜZIK","SIKINTI","SEVGI","ARKADAS","AILE",
+"OTURMAK","ICMEK","UYUMAK","KALKMAK","YAZMAK","OKUMAK","DINLEMEK",
+"YÜRÜMEK","KOŞMAK","OYNAYIŞ","GÜNEŞ","YAĞMUR","KAR","DOLU","RÜZGAR",
+"HAVA","GÖKYÜZÜ","TOPRAK"
+];
+
+let score = 0;
+let record = 0;
+let selectedWord = "";
+let selectedLetters = [];
+let letterDivs = [];
+let correctWord = getRandomWord();
+
+const lettersDiv = document.getElementById("letters");
+const selectedDiv = document.getElementById("selected");
+const scoreDiv = document.getElementById("score");
+const recordDiv = document.getElementById("record");
+const checkBtn = document.getElementById("checkBtn");
+const deleteBtn = document.getElementById("deleteBtn");
+
+function getRandomWord() {
+  return words[Math.floor(Math.random()*words.length)];
+}
+
+function createLetters() {
+  lettersDiv.innerHTML="";
+  selectedLetters=[];
+  letterDivs=[];
+  selectedWord="";
+  selectedDiv.innerText="";
+  const shuffled = correctWord.split("").sort(()=>Math.random()-0.5);
+  shuffled.forEach((letter,index)=>{
+    const div = document.createElement("div");
+    div.className="letter";
+    div.innerText=letter;
+    div.dataset.index=index;
+    div.addEventListener("click", ()=>{
+      if(div.classList.contains("used")) return;
+      selectedWord += letter;
+      selectedLetters.push(div.dataset.index);
+      div.classList.add("used");
+      selectedDiv.innerText = selectedWord;
+    });
+    lettersDiv.appendChild(div);
+    letterDivs.push(div);
+  });
+}
+
+// Silme tuşu
+deleteBtn.addEventListener("click", ()=>{
+  if(selectedWord.length === 0) return;
+  const lastIndex = selectedLetters.pop();
+  selectedWord = selectedWord.slice(0, -1);
+  selectedDiv.innerText = selectedWord;
+  letterDivs[lastIndex].classList.remove("used");
+});
+
+// Kontrol
+checkBtn.addEventListener("click", ()=>{
+  if(selectedWord === correctWord){
+    score++;
+    if(score > record) record = score;
+    alert("Doğru!");
+  } else {
+    alert("Yanlış! Doğru kelime: "+correctWord);
+    score = 0; // yanlışsa skor sıfırlanır
+  }
+  scoreDiv.innerText = "Skor: " + score;
+  recordDiv.innerText = "Rekor: " + record;
+  correctWord = getRandomWord();
+  createLetters();
+});
+
+// Başlangıç
+createLetters();
+</script>
+
+</body>
+</html>
